@@ -1,7 +1,9 @@
 # Arbasoen
 
 
-[![Colab](https://colab.research.google.com/github/barrynauta/arbasoen/blob/main/arbasoen.ipynb)]
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/barrynauta/arbasoen/blob/main/arbasoen.ipynb)
+
+
 ## Getting started
 
 To make it easy for you to get started with GitLab, here's a list of recommended next steps.
