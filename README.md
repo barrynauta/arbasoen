@@ -15,7 +15,7 @@ Questions? Contact me at [barry@nauta.be](mailto:barry@nauta.be)
 The following [examples](/examples) are available:
 - `kennedy_nl.pdf` - Kennedy family tree in Dutch.
 - `kennedy_en.pdf` - Kennedy family tree in English.
-- `royasl92_en.pdf` - Royal 92 family tree in English.
+- `royals92_en.pdf` - Royal 92 family tree in English.
 
 
 ## License
