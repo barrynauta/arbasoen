@@ -10,6 +10,13 @@ Free GPU runtime. Demos provided, no need to connect your gdrive, just click and
 
 Questions? Contact me at [barry@nauta.be](mailto:barry@nauta.be)
 
+## Examples
+
+The following [examples](/examples) are available:
+- `kennedy_nl.pdf` - Kennedy family tree in Dutch.
+- `kennedy_en.pdf` - Kennedy family tree in English.
+- `royasl92_en.pdf` - Royal 92 family tree in English.
+
 
 ## License
-MIT License, see the LICENSE file
+MIT License, see the [LICENSE](LICENSE) file
