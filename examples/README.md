@@ -10,5 +10,5 @@ The following examples are available:
 
 ## GEDCOM Sources
 The GEDCOM files used for these PDFs are available from:
-- [FindMyPast GEDCOM Samples](https://github.com/findmypast/gedcom-samples)
+- [FindMyPast GEDCOM Samples](https://github.com/findmypast/gedcom-samples) ((c) copyright for commercial use)
 - [Arbre App Public GEDCOMs](https://github.com/arbre-app/public-gedcoms)
