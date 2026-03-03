@@ -12,7 +12,7 @@ Questions? Contact me at [barry@nauta.be](mailto:barry@nauta.be)
 
 ## Examples
 
-The following [examples](/examples) are available:
+The following [examples](/examples) are available (based on arbasoen v1.0.0):
 - `kennedy_nl.pdf` - Kennedy family tree in Dutch.
 - `kennedy_en.pdf` - Kennedy family tree in English.
 - `royals92_en.pdf` - Royal 92 family tree in English.
