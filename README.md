@@ -20,5 +20,13 @@ The following [examples](/examples) are available (based on arbasoen v1.0.0):
 ## User maual
 Although the colab cells should provide all the information, there is a dedicated [user manual](user_manual.md) available as well.
 
+### Short version
+
+* Copy the test.tex, test.py and arbasoen.jpg file to a directory in your gdrive
+* Analyse the test.py file. I know it is safe, but this is your responsibility, VALIDATE!
+* Adapt the test,py file to your liking
+* Adapt the proposed paths in the colab script to point to the correct file
+* Hit and run!
+  
 ## License
 MIT License, see the [LICENSE](LICENSE) file
