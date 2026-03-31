@@ -1,0 +1,50 @@
+\documentclass[a4paper,10pt,openany]{book}
+\usepackage[a4paper, margin=2.5cm]{geometry}
+\usepackage{emptypage}
+\usepackage{fancybox}
+\usepackage{afterpage}
+\usepackage{bclogo}
+\usepackage[dutch]{babel}
+
+\usepackage{wrapfig}
+\usepackage[colorlinks=true,linkcolor=blue,urlcolor=blue]{hyperref}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{fontspec}
+\setmainfont{EB Garamond}[
+    UprightFont = *-Regular,
+    BoldFont = *-Bold,
+    ItalicFont = *-Italic,
+    BoldItalicFont = *-BoldItalic
+]
+\usepackage{ebgaramond}
+
+\usepackage{makeidx}
+\usepackage{float}
+\usepackage{tabularx}
+\usepackage{graphicx}
+
+\raggedbottom
+\makeindex
+
+
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+    {\Huge\bfseries Stamboom}\\[1cm]
+    {\large Nauta}\\[2cm]
+    \includegraphics[width=0.6\textwidth]{arbasoen.jpg}\\
+    \vfill
+    {\large \today}
+\end{titlepage}
+
+
+\tableofcontents
+\mainmatter
+\chapter{TEST Stamboom}
+{{CONTENT}}
+\printindex
+\backmatter
+\end{document}
