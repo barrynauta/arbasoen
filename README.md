@@ -17,6 +17,8 @@ The following [examples](/examples) are available (based on arbasoen v1.0.0):
 - `kennedy_en.pdf` - Kennedy family tree in English.
 - `royals92_en.pdf` - Royal 92 family tree in English.
 
+## User maual
+Although the colab cells should provide all the information, there is a dedicated [user manual](user_manual.md) available as well.
 
 ## License
 MIT License, see the [LICENSE](LICENSE) file
