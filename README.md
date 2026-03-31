@@ -22,7 +22,7 @@ Although the colab cells should provide all the information, there is a dedicate
 
 ### Short version
 
-* Copy the test.tex, test.py and arbasoen.jpg file to a directory in your gdrive
+* Copy the test.tex, test.py and arbasoen.jpg files from the [examples](/examples) directory to a directory in your gdrive
 * Analyse the test.py file. I know it is safe, but this is your responsibility, VALIDATE!
 * Adapt the test,py file to your liking
 * Adapt the proposed paths in the colab script to point to the correct file
