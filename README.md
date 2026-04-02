@@ -17,16 +17,14 @@ The following [examples](/examples) are available (based on arbasoen v1.0.0):
 - `kennedy_en.pdf` - Kennedy family tree in English.
 - `royals92_en.pdf` - Royal 92 family tree in English.
 
-## User maual
+## User manual
 Although the colab cells should provide all the information, there is a dedicated [user manual](user_manual.md) available as well.
 
 ### Short version
 
-* Copy the test.tex, test.py and arbasoen.jpg files from the [examples](/examples) directory to a directory in your gdrive
-* Analyse the test.py file. I know it is safe, but this is your responsibility, VALIDATE!
-* Adapt the test,py file to your liking
-* Adapt the proposed paths in the colab script to point to the correct file
-* Hit and run!
+* Select one of the demo files and give it a try
+* Upload your own gedcom file and watch the result (set the start_id first!)
+* Use a python script located on your gdrive for parameter setting and additional execution. See [skeleton_helper.py](examples/skeleton_helper.py) as example
   
 ## License
 MIT License, see the [LICENSE](LICENSE) file
