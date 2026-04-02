@@ -78,8 +78,5 @@ To add detailed biographies or extra formatting for a specific person, create a 
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
-| `NameError: name 'ok' is not defined` | Variables cleared during a runtime reset | Re-run the **Project Configuration Hub** cell to re-define icons. |
-| `ModuleNotFoundError: ged4py` | Colab runtime was restarted | Run the Hub cell; it includes the `!pip install` commands. |
 | `TraitError` in Hub UI | Incompatible widget children | Ensure the UI uses `widgets.HTML` instead of the raw IPython display object. |
-| `SyntaxError` in f-string | Braces evaluated as variables | In Python f-strings, you must use `{{ }}` to produce literal `{ }` for LaTeX. |
 | ID or Language not updating | `get_project_settings` missing | Ensure your `.py` file defines the `get_project_settings()` function. |
