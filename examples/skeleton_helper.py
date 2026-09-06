@@ -41,7 +41,7 @@ def get_project_settings():
     """Tells the notebook which GEDCOM to use and how to configure it."""
     print(f"{info} Applying project settings from script...")
     return {
-        'gedcom_path': '/content/drive/MyDrive/Arbasoen/gedcom/20241031.ged',
+        'gedcom_path': '/content/drive/MyDrive/Arbasoen/gedcom/20260906.ged',
         'start_id': '@I2@',
         'language': 'nl',
         'skip_first_gen': True
