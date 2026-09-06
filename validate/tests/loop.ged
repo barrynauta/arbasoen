@@ -1,0 +1,33 @@
+0 HEAD
+1 SOUR validate_cycles test fixture
+1 GEDC
+2 VERS 5.5.1
+1 CHAR UTF-8
+0 @I1@ INDI
+1 NAME Anna /Alpha/
+1 SEX F
+1 FAMC @F2@
+1 FAMS @F1@
+0 @I2@ INDI
+1 NAME Bram /Beta/
+1 SEX M
+1 FAMS @F2@
+0 @I3@ INDI
+1 NAME Cato /Gamma/
+1 SEX F
+1 FAMC @F1@
+1 FAMS @F2@
+0 @I4@ INDI
+1 NAME Dirk /Delta/
+1 SEX M
+1 FAMC @F1@
+0 @F1@ FAM
+1 HUSB @I2@
+1 WIFE @I1@
+1 CHIL @I3@
+1 CHIL @I4@
+0 @F2@ FAM
+1 HUSB @I2@
+1 WIFE @I3@
+1 CHIL @I1@
+0 TRLR
