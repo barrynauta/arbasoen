@@ -72,6 +72,30 @@ Images referenced in your LaTeX file must be present in `/content/` during compi
 ### Custom Snippets
 To add detailed biographies or extra formatting for a specific person, create a `.tex` file with their ID (e.g., `I2.tex`) in your `includes/` directory. The notebook will attempt to include it automatically using `\InputIfFileExists`.
 
+### Unmarried partners
+A couple with no marriage event is described as married, because for older
+generations a missing marriage record usually means the record was not found
+rather than that no marriage took place.
+
+Where you know a couple were partners rather than spouses, add a **family
+event** whose type contains the word *partner* and leave the marriage event
+empty. The wording is yours: `Partners`, `Partnerschap`, `Unmarried partners`,
+`Geregistreerd partnerschap` all work, in any capitalisation.
+
+    0 @F1724@ FAM
+    1 EVEN
+    2 TYPE Partners
+    1 HUSB @I4433@
+    1 WIFE @I51@
+
+They are then described as partners instead:
+
+    Mirjam is de partner van Marc E. Fox.
+
+Most genealogy applications let you add a custom family event of your own type.
+Trees imported from MyHeritage may already carry `MYHERITAGE:REL_PARTNERS`,
+which matches the same rule without any change on your side.
+
 ---
 
 ## 6. Troubleshooting
