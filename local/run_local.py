@@ -1,6 +1,11 @@
 """Local driver for the arbasoen notebook: replaces the Colab glue (cells 3, 5, 19, 20).
 
-Usage:  python3 local/run_local.py <gedcom.ged>
+Usage:  python3 local/run_local.py <gedcom.ged> [--public]
+        --public: privacy edition for publication. The first two generations are replaced by a
+        notice and dropped from the breadcrumbs, anyone presumed living (no death, born in the last
+        100 years) is shown by name only in child lists, and the skeleton loses the living family's
+        own chapter, and gains the CC BY 4.0 licence page
+        (licentie_publiek.tex next to the skeleton). Output gets a -public suffix.
 Needs:  a venv with ged4py, python-dateutil, unidecode (python3 -m venv local/venv && local/venv/bin/pip install ged4py python-dateutil unidecode),
         LuaLaTeX + makeindex on PATH (MacTeX), and the Drive folder Arbasoen/doc with nauta-dejonge.tex and includes/ images/ places/.
 It extracts the notebook's code cells 6 to 16 and 18 (everything except the Colab widgets, download and apt-get cells),
@@ -10,11 +15,14 @@ lualatex, makeindex, lualatex, lualatex in local/build/. Output: local/build/ped
 import os, sys, shutil, subprocess, time
 S = os.path.dirname(os.path.abspath(__file__))
 DOC = "/Users/barrynauta/Library/CloudStorage/GoogleDrive-barry@nauta.be/My Drive/Arbasoen/doc"
-GED = sys.argv[1]
+GED = next(a for a in sys.argv[1:] if not a.startswith("--"))
+PUBLIC = "--public" in sys.argv
 BUILD = os.path.join(S, "build")
 
 gedcom_config = {'mode': 'script', 'source': 'gdrive', 'gdrive_path': GED,
                  'start_id': '@I2@', 'language': 'nl', 'skip_first_gen': True, 'evidence_cutoff': True}
+if PUBLIC:
+    gedcom_config.update({'privacy_generations': 2, 'privacy_living_years': 100})
 gedcom_file = GED
 ok = " ✅ "; nok = " ❌ "; fire = " 🔥 "; info = " ℹ️ "
 
@@ -37,6 +45,14 @@ tex_content = generate_documentation(generations, families, ahnen_map, persons)
 SKELETON = os.path.join(DOC, "nauta-dejonge.tex")
 skeleton = open(SKELETON, encoding="utf-8").read()
 assert r"\include{generated_pedigree}" in skeleton
+if PUBLIC:
+    # the living family's own chapter stays out of the public edition (the title photo stays in)
+    skeleton = skeleton.replace(r"\include{includes/kinderen_nauta_de_jonge}", "% left out: privacy", 1)
+    # licence page (CC BY 4.0) only in the public edition; text kept next to the skeleton
+    licence = open(os.path.join(DOC, "licentie_publiek.tex"), encoding="utf-8").read()
+    skeleton = skeleton.replace("\\end{titlepage}\n", "\\end{titlepage}\n" + licence, 1)
+    skeleton = skeleton.replace("\\normalsize\n\\clearpage",
+                                "\\noindent Personen uit de jongste generaties zijn om privacyredenen weggelaten.\n\\normalsize\n\\clearpage", 1)
 full_tex = skeleton.replace(r"\include{generated_pedigree}", tex_content, 1)
 
 open(os.path.join(BUILD, "pedigree.tex"), "w", encoding="utf-8").write(full_tex)
@@ -62,8 +78,9 @@ if os.path.exists(pdf):
     m = _re.match(r"(\d{8})", os.path.basename(GED))                 # date of the export
     stamp = m.group(1) if m else time.strftime("%Y%m%d")
     desktop = os.path.expanduser("~/Desktop")
-    full = os.path.join(desktop, f"{stem}-{stamp}.pdf")
-    small = os.path.join(desktop, f"{stem}-{stamp}-small.pdf")
+    suffix = "-public" if PUBLIC else ""
+    full = os.path.join(desktop, f"{stem}-{stamp}{suffix}.pdf")
+    small = os.path.join(desktop, f"{stem}-{stamp}{suffix}-small.pdf")
 
     shutil.copy2(pdf, full)
     print(f"{ok}{full} {os.path.getsize(full)/1e6:.1f} MB")
