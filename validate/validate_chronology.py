@@ -218,6 +218,8 @@ CHECKS = {
     "childbearing-span":    "one mother bearing over too long a period",
     "lifespan":             "implausible lifespan",
     "born-after-death":     "born after their own death",
+    "adult-baptism-before-birth": "baptised as an adult before being born",
+    "adult-baptism-after-death":  "baptised as an adult after dying",
     "marriage-after-death": "married long after dying",
     "ambiguous-slash":      "d/m/y date whose order cannot be resolved",
 }
@@ -248,7 +250,14 @@ def check(persons: Mapping, families: Mapping, *,
                     add("lifespan",
                         f"{_label(ref, persons)}: born {birth}, died {death}, "
                         f"age {age:.0f}", person=ref)
-        for name in ("birth", "baptism", "christening", "death", "burial"):
+        adult = parse_date(_event_date(person, "adult_baptism"))
+        if adult and birth and adult.ordinal + adult.slack + birth.slack < birth.ordinal:
+            add("adult-baptism-before-birth",
+                f"{_label(ref, persons)}: born {birth}, adult baptism {adult}", person=ref)
+        if adult and death and death.ordinal + death.slack + adult.slack < adult.ordinal:
+            add("adult-baptism-after-death",
+                f"{_label(ref, persons)}: adult baptism {adult}, died {death}", person=ref)
+        for name in ("birth", "baptism", "christening", "adult_baptism", "death", "burial"):
             raw = _event_date(person, name)
             parsed = parse_date(raw) if raw else None
             if parsed and parsed.kind == "slash-ambiguous":
@@ -350,7 +359,8 @@ def check(persons: Mapping, families: Mapping, *,
 # Reporting
 # --------------------------------------------------------------------------
 
-ORDER = ["child-before-parent", "born-after-death", "child-after-mother-death",
+ORDER = ["child-before-parent", "born-after-death", "adult-baptism-before-birth",
+         "adult-baptism-after-death", "child-after-mother-death",
          "posthumous-too-late", "parent-too-young", "sibling-gap",
          "marriage-after-death", "mother-too-old", "father-too-old",
          "childbearing-span", "lifespan", "ambiguous-slash"]
@@ -395,12 +405,13 @@ class _Event:
 
 
 class _Person:
-    __slots__ = ("name", "sex", "birth", "baptism", "christening", "death", "burial")
+    __slots__ = ("name", "sex", "birth", "baptism", "christening", "adult_baptism",
+                 "death", "burial")
 
     def __init__(self):
         self.name = ""
         self.sex = ""
-        for slot in ("birth", "baptism", "christening", "death", "burial"):
+        for slot in ("birth", "baptism", "christening", "adult_baptism", "death", "burial"):
             setattr(self, slot, _Event())
 
 
@@ -414,7 +425,7 @@ class _Family:
 
 
 _TAG_TO_SLOT = {"BIRT": "birth", "BAPM": "baptism", "CHR": "christening",
-                "DEAT": "death", "BURI": "burial"}
+                "CHRA": "adult_baptism", "DEAT": "death", "BURI": "burial"}
 
 
 def load_minimal(path: str):
