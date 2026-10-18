@@ -1,6 +1,10 @@
 """Local driver for the arbasoen notebook: replaces the Colab glue (cells 3, 5, 19, 20).
 
-Usage:  python3 local/run_local.py <gedcom.ged> [--public]
+Usage:  python3 local/run_local.py <gedcom.ged> [--public] [--project=<name>] [--start=@I123@]
+        --project: which book to build (see PROJECTS below; default nauta-dejonge). Each project has
+        its own Drive folder (skeleton + includes/ images/ places/), start person and build folder.
+        --start: override the project's start id (e.g. before it is fixed in PROJECTS).
+        --doc: use another project folder (a test copy) instead of the Drive one.
         --public: privacy edition for publication. The first two generations are replaced by a
         notice and dropped from the breadcrumbs, anyone presumed living (no death, born in the last
         100 years) is shown by name only in child lists, and the skeleton loses the living family's
@@ -14,13 +18,30 @@ lualatex, makeindex, lualatex, lualatex in local/build/. Output: local/build/ped
 """
 import os, sys, shutil, subprocess, time
 S = os.path.dirname(os.path.abspath(__file__))
-DOC = "/Users/barrynauta/Library/CloudStorage/GoogleDrive-barry@nauta.be/My Drive/Arbasoen/doc"
+DRIVE = "/Users/barrynauta/Library/CloudStorage/GoogleDrive-barry@nauta.be/My Drive/Arbasoen"
+# One entry per book. 'living_chapter' is the include left out of the public edition;
+# 'generation_summary' prints the evidence statistics paragraph at the top of each generation.
+PROJECTS = {
+    "nauta-dejonge":    {"doc": "doc", "start_id": "@I2@", "skip_first_gen": True, "generation_summary": True,
+                         "living_chapter": r"\include{includes/kinderen_nauta_de_jonge}", "build": "build"},
+    "cornelis-mertens": {"doc": "cornelis-mertens", "start_id": "@75037808@", "skip_first_gen": False, "generation_summary": False,
+                         "living_chapter": r"\include{includes/kinderen_cornelis}", "build": "build-cornelis-mertens"},
+}
+def _opt(name):
+    return next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith(f"--{name}=")), None)
+PROJECT = _opt("project") or "nauta-dejonge"
+P = PROJECTS[PROJECT]
+DOC = _opt("doc") or os.path.join(DRIVE, P["doc"])   # --doc=<folder>: test against a copy
 GED = next(a for a in sys.argv[1:] if not a.startswith("--"))
 PUBLIC = "--public" in sys.argv
-BUILD = os.path.join(S, "build")
+BUILD = os.path.join(S, P["build"])
+START = _opt("start") or P["start_id"]
+if not START:
+    sys.exit(f"no start id for {PROJECT}: pass --start=@I...@ or set it in PROJECTS")
 
 gedcom_config = {'mode': 'script', 'source': 'gdrive', 'gdrive_path': GED,
-                 'start_id': '@I2@', 'language': 'nl', 'skip_first_gen': True, 'evidence_cutoff': True}
+                 'start_id': START, 'language': 'nl', 'skip_first_gen': P["skip_first_gen"], 'evidence_cutoff': True,
+                 'generation_summary': P["generation_summary"]}
 if PUBLIC:
     gedcom_config.update({'privacy_generations': 2, 'privacy_living_years': 100})
 gedcom_file = GED
@@ -29,9 +50,12 @@ ok = " ✅ "; nok = " ❌ "; fire = " 🔥 "; info = " ℹ️ "
 os.makedirs(BUILD, exist_ok=True)
 for folder in ("includes", "images", "places"):
     dst = os.path.join(BUILD, folder)
+    src = os.path.join(DOC, folder)
+    if os.path.islink(dst) and os.readlink(dst) != src:
+        os.unlink(dst)                               # e.g. left over from a --doc test build
     if not os.path.islink(dst):
         if os.path.isdir(dst): shutil.rmtree(dst)
-        os.symlink(os.path.join(DOC, folder), dst)   # read-only use of the Drive assets
+        os.symlink(src, dst)                         # read-only use of the Drive assets
 os.chdir(BUILD)   # the generator checks includes/<id>.tex relative to the cwd, like /content in Colab
 
 t0 = time.time()
@@ -42,12 +66,12 @@ exec(compile(core, "core.py", "exec"))          # cells 6-16, 18: defines classe
 print(f"{ok}core loaded: {len(persons)} persons, {len(families)} families, {len(ahnen_map)} ancestors in {time.time()-t0:.1f}s")
 
 tex_content = generate_documentation(generations, families, ahnen_map, persons)
-SKELETON = os.path.join(DOC, "nauta-dejonge.tex")
+SKELETON = os.path.join(DOC, f"{PROJECT}.tex")
 skeleton = open(SKELETON, encoding="utf-8").read()
 assert r"\include{generated_pedigree}" in skeleton
 if PUBLIC:
     # the living family's own chapter stays out of the public edition (the title photo stays in)
-    skeleton = skeleton.replace(r"\include{includes/kinderen_nauta_de_jonge}", "% left out: privacy", 1)
+    skeleton = skeleton.replace(P["living_chapter"], "% left out: privacy", 1)
     # licence page (CC BY 4.0) only in the public edition; text kept next to the skeleton
     licence = open(os.path.join(DOC, "licentie_publiek.tex"), encoding="utf-8").read()
     skeleton = skeleton.replace("\\end{titlepage}\n", "\\end{titlepage}\n" + licence, 1)
