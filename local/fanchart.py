@@ -104,11 +104,14 @@ def generate_fancharts(ahnen_map) -> str:
     shown_in = {}                  # ahnen id -> chart number where it is shown
 
     def see(aid, n):
-        first.setdefault(ahnen_map[aid].ref, (aid, n))
+        if aid == 1 or not is_dup(aid // 2):      # above a duplicate is hidden, not a first appearance
+            first.setdefault(ahnen_map[aid].ref, (aid, n))
         shown_in.setdefault(aid, n)
 
     def is_dup(aid):
-        """Met before through pedigree collapse, under another ahnen id."""
+        """Met before through pedigree collapse, under another ahnen id, or above such a duplicate."""
+        if aid > 1 and is_dup(aid // 2):
+            return True
         return first[ahnen_map[aid].ref][0] != aid
 
     def dup_top(aid):
