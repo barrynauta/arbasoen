@@ -10,6 +10,8 @@ Usage:  python3 local/run_local.py <gedcom.ged> [--public] [--project=<name>] [-
         100 years) is shown by name only in child lists, and the skeleton loses the living family's
         own chapter, and gains the CC BY 4.0 licence page
         (licentie_publiek.tex next to the skeleton). Output gets a -public suffix.
+        --fan: lighter edition, the generated pedigree text and scans become fan charts of five
+        generations each (local/fanchart.py); the skeleton's other chapters stay. Builds in <build>-fan/.
 Needs:  a venv with ged4py, python-dateutil, unidecode (python3 -m venv local/venv && local/venv/bin/pip install ged4py python-dateutil unidecode),
         LuaLaTeX + makeindex on PATH (MacTeX), and the Drive folder Arbasoen/doc with nauta-dejonge.tex and includes/ images/ places/.
 It extracts the notebook's code cells 6 to 16 and 18 (everything except the Colab widgets, download and apt-get cells),
@@ -24,7 +26,7 @@ DRIVE = "/Users/barrynauta/Library/CloudStorage/GoogleDrive-barry@nauta.be/My Dr
 PROJECTS = {
     "nauta-dejonge":    {"doc": "doc", "start_id": "@I2@", "skip_first_gen": True, "generation_summary": True,
                          "living_chapter": r"\include{includes/kinderen_nauta_de_jonge}", "build": "build"},
-    "cornelis-mertens": {"doc": "cornelis-mertens", "start_id": "@75037808@", "skip_first_gen": False, "generation_summary": False,
+    "cornelis-mertens": {"doc": "cornelis-mertens", "start_id": "@75037808@", "skip_first_gen": True, "generation_summary": False,
                          "living_chapter": r"\include{includes/kinderen_cornelis}", "build": "build-cornelis-mertens"},
 }
 def _opt(name):
@@ -34,7 +36,8 @@ P = PROJECTS[PROJECT]
 DOC = _opt("doc") or os.path.join(DRIVE, P["doc"])   # --doc=<folder>: test against a copy
 GED = next(a for a in sys.argv[1:] if not a.startswith("--"))
 PUBLIC = "--public" in sys.argv
-BUILD = os.path.join(S, P["build"])
+FAN = "--fan" in sys.argv          # fan chart edition: the pedigree text becomes fan charts (local/fanchart.py)
+BUILD = os.path.join(S, P["build"] + ("-fan" if FAN else ""))
 START = _opt("start") or P["start_id"]
 if not START:
     sys.exit(f"no start id for {PROJECT}: pass --start=@I...@ or set it in PROJECTS")
@@ -65,9 +68,17 @@ core = "\n".join("".join(nb["cells"][i]["source"]) for i in [6, 7, 9, 10, 11, 12
 exec(compile(core, "core.py", "exec"))          # cells 6-16, 18: defines classes, loads persons, builds generations, tr, generate_documentation
 print(f"{ok}core loaded: {len(persons)} persons, {len(families)} families, {len(ahnen_map)} ancestors in {time.time()-t0:.1f}s")
 
-tex_content = generate_documentation(generations, families, ahnen_map, persons)
+if FAN:
+    exec(compile(open(os.path.join(S, "fanchart.py"), encoding="utf-8").read(), "fanchart.py", "exec"))
+    tex_content = generate_fancharts(ahnen_map)
+else:
+    tex_content = generate_documentation(generations, families, ahnen_map, persons)
 SKELETON = os.path.join(DOC, f"{PROJECT}.tex")
 skeleton = open(SKELETON, encoding="utf-8").read()
+if FAN:
+    # no index in the fan edition: the lists under the charts are the register, and it halves the page count
+    skeleton = skeleton.replace("\\makeindex", "", 1).replace("\\printindex", "", 1)
+    skeleton = skeleton.replace("\\begin{document}", "\\usepackage{tikz}\n\\providecolor{kempen}{HTML}{7A2E3A}\n\\providecolor{heide}{HTML}{4F6B4A}\n\\providecolor{zand}{HTML}{EFE7DA}\n\\begin{document}", 1)
 assert r"\include{generated_pedigree}" in skeleton
 if PUBLIC:
     # the living family's own chapter stays out of the public edition (the title photo stays in)
@@ -77,6 +88,14 @@ if PUBLIC:
     skeleton = skeleton.replace("\\end{titlepage}\n", "\\end{titlepage}\n" + licence, 1)
     skeleton = skeleton.replace("\\normalsize\n\\clearpage",
                                 "\\noindent Personen uit de jongste generaties zijn om privacyredenen weggelaten.\n\\normalsize\n\\clearpage", 1)
+if FAN:
+    # a chapter with a fan edition next to it (includes/<name>_fan.tex) replaces the original;
+    # after the privacy step, so --public still finds the living chapter under its own name
+    import re as _re
+    for name in _re.findall(r"\\include\{includes/([^}]+)\}", skeleton):
+        if os.path.isfile(os.path.join(DOC, "includes", name + "_fan.tex")):
+            skeleton = skeleton.replace(f"\\include{{includes/{name}}}", f"\\include{{includes/{name}_fan}}", 1)
+            print(f"{info}fan edition of {name}")
 full_tex = skeleton.replace(r"\include{generated_pedigree}", tex_content, 1)
 
 open(os.path.join(BUILD, "pedigree.tex"), "w", encoding="utf-8").write(full_tex)
@@ -86,7 +105,8 @@ def run(cmd):
     r = subprocess.run(cmd, cwd=BUILD, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     return r.returncode
 lua = ["lualatex", "--shell-escape", "-interaction=nonstopmode", "-file-line-error", "pedigree.tex"]
-for label, cmd in [("pass 1", lua), ("makeindex", ["makeindex", "pedigree"]), ("pass 2", lua), ("pass 3", lua)]:
+steps = [("pass 1", lua), ("makeindex", ["makeindex", "pedigree"]), ("pass 2", lua), ("pass 3", lua)]
+for label, cmd in [st for st in steps if not (FAN and st[0] == "makeindex")]:
     t = time.time(); rc = run(cmd); print(f"{ok if rc == 0 else nok}{label} rc={rc} {time.time()-t:.0f}s")
 pdf = os.path.join(BUILD, "pedigree.pdf")
 print(f"{ok if os.path.exists(pdf) else nok}{pdf} {os.path.getsize(pdf)/1e6:.1f} MB" if os.path.exists(pdf) else f"{nok}no pdf")
@@ -102,7 +122,7 @@ if os.path.exists(pdf):
     m = _re.match(r"(\d{8})", os.path.basename(GED))                 # date of the export
     stamp = m.group(1) if m else time.strftime("%Y%m%d")
     desktop = os.path.expanduser("~/Desktop")
-    suffix = "-public" if PUBLIC else ""
+    suffix = ("-fan" if FAN else "") + ("-public" if PUBLIC else "")
     full = os.path.join(desktop, f"{stem}-{stamp}{suffix}.pdf")
     small = os.path.join(desktop, f"{stem}-{stamp}{suffix}-small.pdf")
 
